@@ -1,0 +1,1757 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="x-ua-compatible" content="IE=edge">
+	<meta name="author"
+	      content="Michael Coulter, michael.coulter@telenetwork.com, Ethan Lamkin, ethan.lamkin@telenetwork.com"/>
+	<meta http-equiv="Pragma" content="no-cache"/>
+	<meta http-equiv="Expires" content="-1"/>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+	<title>Frontier Portal</title>
+	<link rel="stylesheet" type="text/css" href="spacelab-bs.css">
+	<style type="text/css">
+
+		.form-1 {
+			max-width: 450px;
+			padding: 0px 0px 0px 0px;
+			margin: 0 auto 20px;
+			background-color: #fff;
+			border: 1px solid #e5e5e5;
+			border-radius: 0px;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+		}
+
+		.attention {
+			background-color: yellow;
+		}
+
+		.upgrade {
+			background-color: red;
+			color: white;
+		}
+
+		.upgrade a {
+			color: yellow;
+		}
+
+		.upgrade table {
+			background-color: red;
+		}
+
+		.good {
+			background-color: green;
+			color: white;
+		}
+
+		.good a {
+			color: yellow;
+		}
+
+		.notify {
+			background-color: blue;
+			color: white;
+		}
+
+		.notify a {
+			color: yellow;
+		}
+
+		.null {
+			background-color: white;
+		}
+
+		.hide {
+			display: none;
+		}
+
+	</style>
+
+	<script type="text/javascript" language="JavaScript" src="jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" language="JavaScript" src="bootstrap.min.js"></script>
+	<script type="text/javascript"></script>
+	<script type="text/javascript" language="JavaScript" src="ticket2.js"></script>
+	<script>
+		function checkTabs() {
+			$("#force_nav").css("display", "inline");
+			$("#cancel_nav").css("display", "inline");
+			$("#cb_nav").css("display", "inline");
+			$("#cbl_nav").css("display", "inline");
+			$("#fm_nav").css("display", "inline");
+		}
+
+		function validate(ph) {
+			var ph_num;
+			$("#pso").html("");
+			$("#SO").css("display", "none");
+			$("#err").html("");
+			$("#pin").html("");
+			$("#eml").html("");
+			$("#CLLI").html("");
+			$("#SAT").html("");
+			$("#showSAT").css("display", "none");
+			$("#AW").css("display", "none");
+			$("#IN").css("display", "none");
+			$("#AI").css("display", "none");
+			$("#B").css("display", "none");
+			$("#SK").css("display", "none");
+			$("#balance").css("display", "none");
+			$("#bal_60").css("display", "none");
+			$("#pw").css("display", "none");
+			if (!(getCookie('lanid')) || !(getCookie('lanpwd'))) {
+				$("#err").html("No V_TLN id or PW set");
+				$("#AW").css("display", "inline");
+			}
+			else {
+				ph_num = ph.replace(/[^0-9]/g, '');
+				if (ph_num.length % 10) {
+					alert('There appears to be an error in your entry!');
+					return;
+				}
+				$('#ph_n').innerHTML = ph_num;
+				if (ph_num) {
+					loadXMLDoc(ph_num);
+					$("#inetpass").css("display", "inline");
+				}
+				else {
+					$("#err").html("No Phone Number submitted!");
+					$("#AW").css("display", "inline");
+
+				}
+			}
+		}
+
+		function loadXMLDoc(ph_num) {
+			$("#bt").css("display", "none");
+			$("#bpb").css("display", "inline");
+
+			var lcjhttp;
+			lcjhttp = new XMLHttpRequest();
+			lcjhttp.open("POST", "jwalk/speed/LCJ2.php", true);
+			lcjhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			lcjhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+			lcjhttp.onreadystatechange = function () {
+				var txt;
+				var obj;
+				if (lcjhttp.readyState == 4 && lcjhttp.status == 200) {
+					txt = lcjhttp.responseText;
+//                obj = eval("(" + txt + ")");
+					try {
+						obj = JSON.parse(txt);
+
+
+						$("#linecard").removeClass();
+						$("#linecard").addClass(obj.LC.color);
+						$("#linecard").html(obj.LC.line_card + " - " + obj.LC.notes);
+
+						/*var $LC = obj.LC.line_card;
+						 if($LC.substring(0,1) == "F"){
+						 $("#issueType").val("fiber");
+						 $("#dslIssues").hide();
+						 $("#fiosIssues").show();
+						 }
+						 else if ($LC.substring(0,1)=="U"){
+						 $("#issueType").val("ftv");
+						 }
+						 else{
+						 $("#issueType").val("dsl");
+						 $("#dslIssues").show();
+						 $("#fiosIssues").hide();
+						 }*/
+
+						$("#street").html(obj.LC.street);
+						$("#loc").html(obj.LC.city + "," + obj.LC.st);
+						$("#provisioned").html(obj.LC.provisioned);
+						$("#mx").html(obj.LC.mx);
+						if ($("#CLLI").html().length < 9) {
+							$("#CLLI").html(obj.LC.CLLI);
+							$("#err").html(obj.LC.congestion.concat($("#err").html()));
+						}
+					}
+					catch (e) {
+						alert("Unexepcted error: " + txt);
+					}
+					$("#AW").css("display", "inline");
+					$("#AI").css("display", "inline");
+				}
+			}
+			var sojhttp;
+			sojhttp = new XMLHttpRequest();
+			sojhttp.open("POST", "jwalk/speed/SOJ.php", true);
+			sojhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			sojhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+			sojhttp.onreadystatechange = function () {
+				var txt;
+				var obj;
+				if (sojhttp.readyState == 4 && sojhttp.status == 200) {
+					txt = sojhttp.responseText;
+//                obj = eval("(" + txt + ")");
+					obj = JSON.parse(txt);
+					$("#pin").html(obj.pin);
+					if (obj.SO.number) {
+						if (obj.SO.memo && obj.SO.item) {
+							iH = "SO#" + obj.SO.number + "<br>Products Added/Removed: " + html_entity_decode(obj.SO.item) + "<br>Memo: " + obj.SO.memo;
+						}
+						else {
+							iH = "SO#" + obj.SO.number + "<br>No further information available, record may be in use.  Ask an Auditor.";
+
+						}
+						$("#pso").html(iH);
+						$("#SO").css("display", "inline");
+					}
+				}
+			}
+			var unjhttp;
+			unjhttp = new XMLHttpRequest();
+			unjhttp.open("POST", "jwalk/speed/UNJ.php", true);
+			unjhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			if (!(getCookie('portalPW')) || getCookie('portalPW') == 'undefined') unjhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+			else {
+				unjhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('portalPW') + "&ph=" + ph_num + "&pop=1");
+				$("#pw").css("display", "inline");
+				$("#inetpass").css("display", "none");
+			}
+
+			unjhttp.onreadystatechange = function () {
+				var txt;
+				var obj;
+				if (unjhttp.readyState == 4 && unjhttp.status == 200) {
+					txt = unjhttp.responseText;
+					try {
+//		   obj = eval("(" + txt + ")");
+						obj = JSON.parse(txt);
+					}
+					catch (err) {
+						$("#eml").html("Error: lookup UN Manually");
+					}
+
+
+					console.log(obj);
+					if (obj) {
+						$("#eml").html(obj.un.eml);
+						if (obj.clli != "n/a") {
+							$("#CLLI").html(obj.clli);
+							$("#err").html(obj.congestion.concat($("#err").html()));
+						}
+						if (!(obj.un.pw == 'n/a')) {
+							$("#pw").html(obj.un.pw);
+							$("#inetpass").css("display", "none");
+						}
+					}
+				}
+			}
+
+			var sejhttp;
+			sejhttp = new XMLHttpRequest();
+			sejhttp.open("POST", "jwalk/speed/SEJ.php", true);
+			sejhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			sejhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+			sejhttp.onreadystatechange = function () {
+
+				var txt;
+				var obj;
+				if (sejhttp.readyState == 4 && sejhttp.status == 200) {
+					qvjStuffs(ph_num);
+					txt = sejhttp.responseText;
+//                obj = eval("(" + txt + ")");
+					obj = JSON.parse(txt);
+
+					var looping = "";
+					if (obj.SE.bill_detail) {
+						for (var i = 0; i < obj.SE.bill_detail.bill_item.length; i++) {
+							if (obj.SE.bill_detail.bill_item[i].color == 'hide') looping = looping.concat("<tr class='hide'><td  style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].p_id);
+							else looping = looping.concat("<tr><td  style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].p_id);
+							looping = looping.concat("</td><td  style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].prod);
+							looping = looping.concat("</td><td  style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].charge);
+							looping = looping.concat("</td><td  style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].install_date);
+							if (obj.SE.bill_detail.bill_item[i].cancel_date != '000000') looping = looping.concat("</td><td  class='upgrade' style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].cancel_date);
+							else looping = looping.concat("</td><td style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].cancel_date);
+							looping = looping.concat("</td><td class='" + obj.SE.bill_detail.bill_item[i].color + "' style='text-align: center;'>" + obj.SE.bill_detail.bill_item[i].notes + "</td></tr>");
+						}
+						$("#bill_prods").html(looping);
+						$("#B").css("display", "inline");
+					}
+					var errors = "";
+					if (obj.SE.errors.dpa) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.dpa + "</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#nosale").modal('show');
+					}
+					if (obj.SE.errors.TT) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.TT + "</td></tr>");
+						$("#AW").css("display", "inline");
+					}
+					if (obj.SE.errors.SO) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.SO + "</td></tr>");
+						$("#AW").css("display", "inline");
+					}
+					if (obj.SE.errors.install) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.install + "</td></tr>");
+						$("#AW").css("display", "inline");
+					}
+					if (obj.SE.errors.invalid) {
+						if (0) {//if(obj.SE.errors.host) {  This is for shadowdpi system
+							errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.invalid + "</td></tr><tr class='upgrade'><td>Unable to locate customer in " + obj.SE.errors.host + " DPI. You can manually check for the account in " + (obj.SE.errors.host == "Legacy" ? "<a href='CTSHADOW/' target='_blank'>Connecticut Shadow DPI</a>" : "<a href='LEGACY/' target='_blank'>Legacy DPI</a>") + " or jWalk.</td></tr>");
+						}
+						else {
+							errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.invalid + "</td></tr>");
+						}
+						$("#AW").css("display", "inline");
+					}
+					if (obj.SE.errors.nsf) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.nsf + "</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#nosale").modal('show');
+					}
+					if (obj.SE.errors.dnp) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.dnp + "</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#nosale").modal('show');
+					}
+					if (obj.SE.errors.backlog) {
+						errors = errors.concat("<tr class='upgrade'><td>" + obj.SE.errors.backlog + "</td></tr>");
+						$("#AW").css("display", "inline");
+					}
+
+					$("#err").html($("#err").html().concat(errors));
+
+					if (obj.SE.sat) {
+						$("#SAT").html(obj.SE.sat);
+						$("#showSAT").css("display", "table-row");
+						$("#showCLLI").css("display", "none");
+					}
+					looping = "";
+					if (obj.SE.bill_detail) {
+						if (obj.SE.rules.rule[0].description) {
+							$("#IN").css("display", "inline");
+							for (var i = 0; i < obj.SE.rules.rule.length; i++) {
+								looping = looping.concat("<tr class='" + obj.SE.rules.rule[i].color + "'><td>" + obj.SE.rules.rule[i].description + "</td></tr>");
+							}
+							$("#rules").html(looping);
+						}
+					}
+
+					$("#bpb").css("display", "none");
+					$("#bt").css("display", "inline");
+					var subjhttp;
+					subjhttp = new XMLHttpRequest();
+					subjhttp.open("POST", "jwalk/speed/SUBJ.php", true);
+					subjhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+					subjhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+					subjhttp.onreadystatechange = function () {
+						var txt;
+						var obj;
+						if (subjhttp.readyState == 4 && subjhttp.status == 200) {
+
+							txt = subjhttp.responseText;
+							//                obj = eval("(" + txt + ")");
+							obj = JSON.parse(txt);
+							if (obj.subscriptions.subsc.length) {
+
+								var looping = "";
+								for (var i = 0; i < obj.subscriptions.subsc.length; ++i) {
+									looping = looping.concat("<tr class='" + obj.subscriptions.subsc[i].color + "'><td  style='text-align: center;'>" + obj.subscriptions.subsc[i].stat);
+									looping = looping.concat("</td><td  style='text-align: center;'>" + obj.subscriptions.subsc[i].prod);
+									looping = looping.concat("</td><td style='text-align: center;'>" + obj.subscriptions.subsc[i].lic_key + "</td></tr>");
+								}
+								$("#subs").html(looping);
+								$("#SK").css("display", "inline");
+							}
+						}
+					}
+				}
+
+			}
+		}
+
+		function qvjStuffs(ph_num) {
+			var qvjhttp;
+			qvjhttp = new XMLHttpRequest();
+			qvjhttp.open("POST", "jwalk/speed/QVJ.php", true);
+			qvjhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			qvjhttp.send("user=" + getCookie('lanid') + "&pass=" + getCookie('lanpwd') + "&ph=" + ph_num);
+			qvjhttp.onreadystatechange = function () {
+				var txt;
+				var obj;
+				var errors = $("#err").html();
+
+				if (qvjhttp.readyState == 4 && qvjhttp.status == 200) {
+					txt = qvjhttp.responseText;
+//                obj = eval("(" + txt + ")");
+					obj = JSON.parse(txt);
+					if (obj.past_sixty > 0) {
+						$("#bal_60_value").html(obj.past_sixty.toFixed(2));
+						$("#bal_60").css("display", "table-row");
+						$("#nosale").modal('show');
+					}
+					if (obj.NSF) {
+						errors = errors.concat("<tr class='upgrade'><td>NSF in the past 180 days: " + obj.NSF + "</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#nosale").modal('show');
+						$("#err").html($("#err").html().concat(errors));
+					}
+					if (obj.serviceType == 'RU' || obj.serviceType == 'BU') {
+						errors = errors.concat("<tr class='upgrade'><td>This is a Frontier TV customer, please provide this number to the customer and warm transfer to (800)219-6877</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#err").html($("#err").html().concat(errors));
+					}
+					if (obj.DPA) {
+						errors = errors.concat("<tr class='upgrade'><td>DPA in the past 180 days: " + obj.DPA + "</td></tr>");
+						$("#AW").css("display", "inline");
+						$("#nosale").modal('show');
+						$("#err").html($("#err").html().concat(errors));
+					}
+
+					$("#billbal_value").html(obj.curr_bal.toFixed(2));
+					$("#balance").css("display", "inline");
+					$("#ssn").html(obj.last_four);
+
+				}
+			}
+		}
+
+
+		function getPassword(ph_num) {
+			if (!(getCookie('portalPW')) || getCookie('portalPW') == 'undefined') {
+				var portalPassword = prompt("Enter your INETPORTAL password to retrieve this customers password.");
+				setCookie('portalPW', portalPassword);
+			}
+			else portalPassword = getCookie('portalPW');
+
+			var unjhttp;
+			unjhttp = new XMLHttpRequest();
+			unjhttp.open("POST", "jwalk/speed/UNJ.php", true);
+			unjhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			unjhttp.send("user=" + getCookie('lanid') + "&pass=" + portalPassword + "&ph=" + ph_num + "&pop=1");
+			unjhttp.onreadystatechange = function () {
+				var txt;
+				var obj;
+				if (unjhttp.readyState == 4 && unjhttp.status == 200) {
+					txt = unjhttp.responseText;
+//                obj = eval("(" + txt + ")");
+					obj = JSON.parse(txt);
+					$("#eml").html(obj.un.eml);
+					$("#pw").html(obj.un.pw);
+					$("#pw").css("display", "inline");
+					$("#inetpass").css("display", "none");
+
+				}
+			}
+		}
+	</script>
+</head>
+<body onLoad="checkForLogin(); checkTabs();">
+<div class="container" id="mainDiv">
+	<ul class="nav nav-tabs"></ul>
+	<div class="navbar">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="#">Frontier Portal</a>
+			</div>
+		</div>
+	</div>
+	<div class="span12">
+		<ul class="nav nav-tabs" id="toolTabs">
+
+			<li class="active"><a href="#logon" data-toggle="tab">Session</a></li>
+			<li id="bill_nav" style="display:none;">
+				<a href="#billtab" data-toggle="tab">Account Lookup</a>
+			</li>
+
+			<li id="tix_nav" style="display:none;">
+				<a href="#tixtab" data-toggle="tab">Escalate Ticket</a>
+			</li>
+			<!--
+				<li id="cancel_nav" style="display:none;">
+					<a href="#canceltab" data-toggle="tab">Cancel Ticket</a>
+				</li>
+			-->
+			<li id="force_nav" style="display:none;">
+				<a href="#forcetab" data-toggle="tab">Force Tool</a>
+			</li>
+
+			<li id="cb_nav" style="display:none;">
+				<a href="http://techhelp.northcentralnetworks.com/vsc/Forms/CodeBlue-v1.aspx" target="_blank">Code
+					Blue</a>
+			</li>
+
+			<li id="cbl_nav" style="display:none;">
+				<a href="http://techhelp.northcentralnetworks.com/vsc/Reports/codeblue-summary.aspx" target="_blank">CB
+					Lookup</a>
+			</li>
+
+			<li id="fm_nav" style="display:none;">
+				<a href="http://techhelp.northcentralnetworks.com/vsc/forms/filter-modemrequest.aspx" target="_blank">Filter
+					& Modem Request</a>
+			</li>
+
+		</ul>
+
+		<div class="tab-content">
+
+			<div class="tab-pane active" id="logon">
+				<div class="offset2"><img src="frontierlogo.png"></div>
+				<br>
+
+				<div class="row span6 offset2">
+					<form class="form-horizontal">
+						<fieldset>
+
+							<div class="control-group">
+								<label class="control-label" for="lanid">JWalk Username</label>
+
+								<div class="controls">
+									<input id="lanid" name="lanid" type="text" placeholder=" " class="input-large"
+									       required=""
+									       autocomplete="off"
+									       onchange="this.value = this.value.toUpperCase().substr(0,10);">
+
+									<p class="help-block"></p>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="lanpwd">JWalk Password</label>
+
+								<div class="controls">
+									<input id="lanpwd" name="lanpwd" type="password" placeholder="" class="input-large"
+									       required=""
+									       autocomplete="off" onchange="this.value = this.value;">
+
+									<p class="help-block"></p>
+								</div>
+							</div>
+
+							<div class="control-group">
+								<label class="control-label" for="portalLogin"></label>
+
+								<div class="controls">
+									<button id="portalLogin" class="btn btn-primary span2"
+									        onclick="storeValues(form); return false;">
+										Login
+									</button>
+									<button style="display: none;" id="logout" class="btn btn-danger span2"
+									        onclick="clearCookies(); return false;">
+										Log Out
+									</button>
+								</div>
+								<div id="lpb">
+									<div class="progress progress-striped progress-danger active span3">
+										<div class="bar" style="width: 100%;"></div>
+									</div>
+								</div>
+								<div id="errorModal" class="modal hide fade" tabindex="-1" role="dialog"
+								     aria-labelledby="errorModalLabel" aria-hidden="true">
+									<div class="modal-header">
+										<button type="button" class="close" data-dismiss="modal" aria-hidden="true">X
+										</button>
+										<h3 id="myModalLabel">Login Error</h3>
+									</div>
+									<div class="modal-body">
+										<p id="errorMsg"></p>
+									</div>
+									<div class="modal-footer">
+										<button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Close
+										</button>
+									</div>
+								</div>
+							</div>
+
+						</fieldset>
+					</form>
+					<div class="well">
+						<div class="alert alert-danger" style="text-align: center;">
+							<strong>MESSAGE OF THE DAY</strong>
+						</div>
+						<strong>This tool is NOT compatible with IE 11. Do NOT send bug reports or suggestions regarding
+							this. It will be addressed in the future.</strong>
+						<br><br>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="tixtab">
+
+				<div class="row" id="offline" style="text-align: center; display: none;">
+					<div class="alert alert-block alert-error span6 offset3">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						<h4 style="text-align: center">ATTENTION</h4>
+						The ticket tool is currently offline for maintenence.
+					</div>
+				</div>
+				<div class="row">
+					<div class="alert alert-block alert-error span6 offset3" style="text-align: center; display: none;"
+					     id="outageboard">
+						<h4 style="text-align: center">ATTENTION</h4>
+						The ticket tool will be going offline in <span style="font-weight: bold;" id="timeleft"></span>
+					</div>
+				</div>
+				<div>
+					<div class="row">
+						<div class="alert alert-block alert-error span6 offset2" id="errortbl" style="display:none;">
+							<button type="button" class="close" data-dismiss="alert">&times;</button>
+							<h4 style="text-align: center">IMPORTANT</h4>
+							&nbsp;
+						</div>
+					</div>
+				</div>
+				<div class="row span3" id="login">
+					<form class="form-horizontal" onsubmit="verifyNumber(); return false;" autocomplete="off">
+						<!--<legend class="span11">Enter the Phone Number Below</legend>-->
+						<div class="alert alert-info span5 offset1">
+							<button type="button" class="close" data-dismiss="alert">&times;</button>
+							<strong>Please Enter the Phone Number Below</strong>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="wtn"></label>
+
+							<div class="controls">
+								<input type="text" id="wtn" placeholder="" class="span3 text-info" name="tixData[wtn]"
+								       onchange="this.value = this.value.replace(/[^0-9]/g, '').substr(0,10);">
+							</div>
+						</div>
+						<div class="span3 offset1" id="v">
+							<button type="submit" class="btn btn-primary offset1 span2" id="vnum">Verify Number</button>
+						</div>
+						<div id="vl" style="display: none;">
+							<div class="progress progress-striped progress-info active offset1 span5">
+								<div class="bar" style="width: 100%;"></div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="row" id="passwordchange" style="display: none; text-align: center;">
+					<form method="get" action="#" class="form-horizontal form-1"
+					      onsubmit="passwordchange(); return false;">
+						<span style="font-weight: bold; text-align: center;">Your password must be atleast 6 charactors long, contain 1 letter and 1 number, use only numbers and letters.<br/>Your password cannot match your last 32 passwords.</span>
+
+						<div class="control-group">
+							<label class="control-label" for="npass1">New Password</label>
+
+							<div class="controls">
+								<input type="text"
+								       onchange="this.value = this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase().substr(0,10);"
+								       id="npass1" name="npass1" maxlength="10">
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label" for="npass2">Confirm Password</label>
+
+							<div class="controls">
+								<input type="text" id="npass2"
+								       onchange="this.value = this.value.replace(/[^a-zA-Z0-9]/g,'').toUpperCase().substr(0,10);"
+								       name="npass2" maxlength="10">
+							</div>
+						</div>
+						<div class="offset1">
+							<button type="submit" class="btn btn-primary span3" id="pb">Change Password</button>
+						</div>
+						<div id="pl" style="display: none;">
+							<div class="progress progress-striped progress-info active span5">
+								<div class="bar" style="width: 100%;"></div>
+							</div>
+						</div>
+
+					</form>
+				</div>
+				<div id="afterVerified" style="display: none; text-align: center;">
+					<div class="row offset2 span6" style="text-align: center;">
+						<form class="form-horizontal well" method="get" action="#"
+						      onsubmit="submitTicket(); return false;">
+							<fieldset>
+								<input type="hidden" id="lineCardType" name="lineCardType" value=""/>
+								<input type="hidden" id="LC" name="LC" value=""/>
+								<input type="hidden" id="customerType" name="customerType" value=""/>
+
+								<!-- Form Name -->
+								<legend style="text-align: center;">Ticket Information</legend>
+
+								<div class="control-group">
+									<label class="control-label">Phone number</label>
+
+									<div class="controls">
+										<input class="input-large" id="idNum" name="idNum" value="" disabled="disabled">
+									</div>
+								</div>
+								<div class="control-group">
+									<label class="control-label">Account name</label>
+
+									<div class="controls">
+										<input class="input-large" id="idName" name="idName" value=""
+										       disabled="disabled">
+									</div>
+								</div>
+								<div class="control-group">
+									<label class="control-label">Account Address</label>
+
+									<div class="controls">
+										<input class="input-large" id="idAddy" name="idAddy" value=""
+										       disabled="disabled">
+									</div>
+								</div>
+								<div class="control-group">
+									<label class="control-label">USI Number</label>
+									<div class="controls">
+										<input class="input-large" id="idUSI" name="idUSI" value=""
+										       disabled="disabled">
+										<input type="hidden" name="USI" id="USI" value="">
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group">
+									<label class="control-label">Customer Name</label>
+
+									<div class="controls">
+										<input id="contactname" name="tixData[contactName]" type="text" placeholder=""
+										       class="input-large" required="" maxlength="16"
+										       onchange="this.value = this.value.replace(/[^a-zA-Z- ]/g,'').substr(0,16);">
+
+									</div>
+								</div>
+
+								<!-- Select Basic -->
+								<div class="control-group">
+									<label class="control-label">Contact Type</label>
+
+									<div class="controls">
+										<select id="contacttype" name="contacttype" class="input-large">
+											<option>Select One</option>
+											<option>Home</option>
+											<option>Work</option>
+											<option>Cell</option>
+											<option>Office</option>
+											<option>Other</option>
+										</select>
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group">
+									<label class="control-label">Contact Number</label>
+
+									<div class="controls">
+										<input id="contactnumber" name="tixData[contactNumber]" type="text"
+										       placeholder=""
+										       class="input-large" required=""
+										       onchange="this.value = this.value.replace(/[^0-9]/g, '').substr(0,10);">
+									</div>
+								</div>
+
+								<div class="controls" id="affectedDslIssues" name="affectedDslIssues">
+									<label class="radio-inline"><input type="radio" id="dslTType" name="TType"
+									                                   value="dsl"
+									                                   onclick='$("#dslIssues").show();$("#potsIssues").hide(); $("#pppInfo").show();'>DSL
+										Ticket</label>
+									<label class="radio-inline"><input type="radio" id="potsTType" name="TType"
+									                                   value="pots"
+									                                   onclick='$("#potsIssues").show();$("#dslIssues").hide(); $("#pppInfo").hide();'>POTS
+										Ticket</label>
+								</div>
+
+								<div id="potsIssues" name="potsIssues" style="display: none; text-align: center;">
+									<div class="control-group">
+										<label class="control-label">POTS Issues</label>
+
+										<div class="controls">
+											<select id="potsIssue" name="potsIssue" class="input-large"
+											        onchange="getAppointmentsApiSel(this)">
+												<option value="" selected="selected">Select an Issue</option>
+												<option value="1"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Can't Be Heard</option><option value="3"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Can't Be Heard Calling</option><option value="2"    oss="1" restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Can't Call Out</option><option value="4"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Cut off Incoming</option><option value="5"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Cuts off Outgoing</option><option value="6"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Dead after Dialing</option><option value="7"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Double Dial Tone</option><option value="8"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Get Busy Tone</option><option value="9"    oss="1" restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">No Dial Tone</option><option value="11"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Operator Intercepts Call</option><option value="12"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Others on Line</option><option value="14"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Reaches a Recording</option><option value="15"     restype="RO" bustype="BO" ctftype="" ressched="0" bussched="0">Reverts to Dial Tone</option><option value="16"     restype="RS" bustype="BS" ctftype="" ressched="0" bussched="0">Static On Line</option><option value="10"     restype="RS" bustype="BS" ctftype="" ressched="0" bussched="0">Transmission Noise</option><option value="17"     restype="RS" bustype="BS" ctftype="" ressched="0" bussched="0">Voicemail Box</option>											</select>
+										</div>
+									</div>
+
+									<div class="control-group" name="OOS" id="OOS">
+										<label class="control-label">Out Of Service?</label>
+
+										<div class="controls">
+											<label class="checkbox">
+												<input type="checkbox" name="OOS" id="OOS">
+											</label>
+										</div>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">Memo Notes</label>
+
+										<div class="controls">
+											<textarea id="memoNotes" name="memoNotes" maxlength="78"></textarea>
+										</div>
+									</div>
+								</div>
+
+								<div id="dslIssues" name="dslIssues">
+									<!-- Select Basic -->
+									<div class="control-group">
+										<label class="control-label">Modem Model</label>
+
+										<div class="controls">
+											<select id="modem" name="modem" class="input-large"
+											        onchange="domodem(this);">
+												<option selected="selected">Select A Modem</option>
+												<option>Netgear 7550</option>
+												<option>Westell 7500</option>
+												<optgroup label="Speed Stream">
+													<option>SE 567</option>
+													<option>SX 762</option>
+													<option>Speed Stream 6520</option>
+													<option>Speed Stream 5200</option>
+													<option>Speed Stream 5667</option>
+													<option>Speed Stream 5861</option>
+													<option>Speed Stream 5930</option>
+													<option>Speed Stream 4200</option>
+												</optgroup>
+												<optgroup label="Westell">
+													<option>Westell 2110</option>
+													<option>Westell 2200</option>
+													<option>Westell 6100</option>
+													<option>Westell 327W</option>
+												</optgroup>
+												<optgroup label="Actiontec">
+													<option>Actiontec GT704WG</option>
+													<option>Actiontec GT701C</option>
+													<option>Actiontec F2250</option>
+													<option>Actiontec FV2200</option>
+													<option>Actiontec MI424WR</option>
+													<option>Actiontec V1000W</option>
+												</optgroup>
+												<optgroup label="3Com">
+													<option>3Com Dual-Link</option>
+													<option>3Com Internal PCI Card</option>
+													<option>3Com 812 Router</option>
+												</optgroup>
+												<optgroup label="D-Link">
+													<option>D-Link 100D</option>
+													<option>D-Link 500</option>
+													<option>D-Link 504</option>
+													<option>D-Link DSB-650 TX USB NIC</option>
+												</optgroup>
+												<optgroup label="Cisco">
+													<option>Cisco 677</option>
+												</optgroup>
+												<optgroup label="Alcatel">
+													<option>Alcatel Router</option>
+												</optgroup>
+												<optgroup label="Best Data">
+													<option>AR 520</option>
+												</optgroup>
+												<optgroup label="ClearAccess">
+													<option>EG10W - Fiber</option>
+													<option>AG10 - Wired</option>
+													<option>AG10W - wireless</option>
+												</optgroup>
+												<optgroup label="Conexant">
+													<option>ADSL 2/2+ (EA142)</option>
+													<option>XDSL2+ 4-port Router EA143</option>
+												</optgroup>
+												<optgroup label="Diamond SupraMax">
+													<option>DSL642WLG</option>
+													<option>DSL642WLGV2</option>
+												</optgroup>
+												<optgroup label="SMC Networks">
+													<option>SMC7904WVRA2</option>
+												</optgroup>
+												<optgroup label="Satellite">
+													<option>HT1000</option>
+													<option>HT1100</option>
+													<option>HN9000</option>
+												</optgroup>
+												<optgroup label="VDSL">
+													<option>HT1000</option>
+													<option>FV2200</option>
+													<option>V1000W</option>
+													<option>Zyxel P663</option>
+													<option>Zyxel P-870HN</option>
+													<option>Cometrend 5631</option>
+													<optgroup>
+														<optgroup label="Other">
+															<option>Other</option>
+														</optgroup>
+													</optgroup>
+												</optgroup>
+											</select>
+										</div>
+									</div>
+
+									<!-- Text input-->
+									<div class="control-group" id="other" style="display: none;">
+										<label class="control-label">Other Model</label>
+
+										<div class="controls">
+											<input id="othermodem" name="otherModem" type="text" placeholder=""
+											       class="input-large">
+											<br><br>
+										</div>
+									</div>
+
+									<!-- Select Basic -->
+									<div class="control-group">
+										<label class="control-label">Phone Status</label>
+
+										<div class="controls">
+											<select id="phoneissue" name="phoneissue" class="input-large">
+												<option value="0">No phone issues</option>
+												<option value="1">Static On Line</option>
+												<option value="2">No Dial Tone</option>
+											</select>
+										</div>
+									</div>
+
+									<!-- Select Basic -->
+									<div class="control-group">
+										<label class="control-label">Issue</label>
+
+										<div class="controls">
+											<select id="issue" name="issue" class="input-large"
+											        onchange="issue_switch(this); getAppointmentsApiSel(this);">
+												<option value="">Select An Issue</option>
+												<option value="20"     restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">Frequent Disconnects - After full troubleshooting, including Loopcare/5530.  IF NO PHYSICAL FAULT AND NOT AOHD, SEE LOLA FOR HANDLING, NO TICKET  (DSL FD = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="23"     restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">Line Noise - make sure to verify filtering, setup, etc before opening.  (DSLNSY = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="18"    oss="1" restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">No DSL SYNC (flashing or no DSL light) -  AFTER CHECKING PORT AND ACCOUNT STATUS (DSLDL = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="21"    oss="1" restype="DS" bustype="BD" ctftype="" ressched="1" bussched="1">No INET Light - AFTER FULL TROUBLESHOOTING, INCLUDING CREDENTIALS AND ACCOUNT STATUS (DSLCC = NT) USE DEFAULT APPOINTMENT</option><option value="24" snr="1"  speed="1"  restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">Packet Loss / Speeds  IF NO PHYSICAL FAULT AND AOHD, SEE LOLA FOR HANDLING, NO TICKET (DSLMDS = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="92"    oss="1" restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">Potential Bad Modem - MUST REFUSE DROP SHIP AND AGREE TO $75 CHARGE (DSLMDL = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="25"  satlights="1"  oss="1" restype="SD" bustype="SD" ctftype="" ressched="2" bussched="2">Satellite - Alignment Issue  (SAT = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="26"  satlights="1"  oss="1" restype="SD" bustype="SD" ctftype="" ressched="2" bussched="2">Satellite - Defective Modem (SAT = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="27"  satlights="1"  oss="1" restype="SD" bustype="SD" ctftype="" ressched="2" bussched="2">Satellite - Modem Light Issue (SAT = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="28"  satlights="1"  oss="1" restype="SD" bustype="SD" ctftype="" ressched="2" bussched="2">Satellite - Modem Light Issue (SAT = Field)DO NOT USE DEFAULT APPOINTMENT</option><option value="19"   speed="1"  restype="DS" bustype="BD" ctftype="" ressched="2" bussched="2">Slow Speeds  IF NO PHYSICAL FAULT AND NOT AOHD, SEE LOLA FOR HANDLING, NO TICKET (DSLMDS = Field) DO NOT USE DEFAULT APPOINTMENT</option>											</select>
+										</div>
+									</div>
+
+									<!-- Select Basic -->
+									<div class="control-group" id="subOptions" style="display: none;">
+										<label class="control-label">Modem Issue</label>
+
+										<div class="controls">
+											<select id="subissue" name="subissue" class="input-large">
+												<option value="0">Select An Issue</option>
+												<option value="1">Will not turn on</option>
+												<option value="2">Wireless is not broadcasting</option>
+												<option value="3">Faulty ports</option>
+												<option value="4">Physical Damage</option>
+												<option value="5">Firmware Will Not Hard Reset</option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+								<!----------- ADDED affected services for FTV and FIOS SECTION --------------->
+								<div id="affectedServicesContain" name="affectedServicesContain">
+									<div class="control-group">
+										<label class="control-label">Affected Services</label>
+
+										<div class="controls">
+											<select id="issueType" name="issueType" class="input-large"
+											        onchange="fiosIssueSwitch(this);">
+												<option selected="selected">Select which services are affected</option>
+												<option value="voice">Voice is affected</option>
+												<option value="data">Data and video are affected</option>
+												<option value="video">Just video is affected</option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+								<!----------- ADDED FIOS SECTION --------------->
+								<div id="fiosIssues" name="fiosIssues">
+
+									<div class="control-group" id="voiceContain" name="voiceContain"
+									     style="display: none;">
+										<label class="control-label">Customer Trouble</label>
+										<select id="voipIssue" name="voipIssue" class="input-large"
+										        onchange="getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="35"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">An issue with a feature such as call forward, caller ID (not on TV), etc.  That could not be resolved through normal troubleshooting. (VOIPT2F = NTs) USE DEFAULT APPOINTMENT</option><option value="36"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">An issue with voice mail that could not be resolved through normal troubleshooting. (VOIPT2M = NTs) USE DEFAULT APPOINTMENT</option><option value="34"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">INBOUND calls only. Can NOT RECEIVE Calls or sound quality issue after full troubleshooting.   (VOIPT2I = NTs) USE DEFAULT APPOINTMENT</option><option value="29"     restype="FP" bustype="FB" ctftype="" ressched="2" bussched="2">Isolated to wiring or bad jack issues after troubleshooting. NOT CUSTOMER OWNED EQUIPMENT (VOIPDIS = Field)  DO NOT USE DEFAULT APPOINTMENT</option><option value="32"    oss="1" restype="FP" bustype="FB" ctftype="" ressched="2" bussched="2">NO DIAL TONE with ALL OTHER SERVICES OUT as well. (VOIPT2S = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="30"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">No Dial Tone, VIDEO/DATA ARE WORKING.  No Physical problem found in troubleshooting. (VOIPNDT = NTs) USE DEFAULT APPOINTMENT</option><option value="33"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">OUTBOUND calls only.  Can NOT Call Out or sound quality issue after full troubleshooting.   (VOIPT2O = NTs) USE DEFAULT APPOINTMENT</option><option value="31"     restype="FP" bustype="FB" ctftype="" ressched="1" bussched="1">Sound quality issue with IN and OUTBOUND calls, after full troubleshooting.   (VOIPT2Q = NTs) USE DEFAULT APPOINTMENT</option>										</select>
+									</div>
+
+									<div class="control-group" name="dataContain" id="dataContain"
+									     style="display: none;">
+										<label class="control-label">Customer Trouble</label>
+										<select id="dataIssue" name="dataIssue" class="input-large"
+										        onchange="speedSwitch(this); getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="37"     restype="FD" bustype="FB" ctftype="" ressched="2" bussched="2">BBU/PSU Problem - All Data Services out. (FDBAT = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="40"     restype="FD" bustype="FB" ctftype="" ressched="2" bussched="2">Customer demands dispatch.  NOT for wireless problems or customer owned equipment problems.  ADVISE OF CHARGES (FDDIS = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="38"     restype="FD" bustype="FB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace BHR, instead of dropship. ADVISE OF CHARGES. (FDBHR = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="41"     restype="FD" bustype="FB" ctftype="" ressched="1" bussched="1">Frequent Disconnects. NOT WIRELESS DISCONNECTS (FDFD = NTs) USE DEFAULT APPOINTMENT</option><option value="43"     restype="FD" bustype="FB" ctftype="" ressched="2" bussched="2">ONT is DOWN or Drop/Wiring/Physical issue present - All Data Services affected. (FDPHY = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="109"     restype="FD" bustype="FB" ctftype="" ressched="1" bussched="1">ONT is UP - NO Drop/Wiring/Physical issue apparent - All Data Services out. (FDCC = NTs) USE DEFAULT APPOINTMENT</option><option value="42"     restype="FD" bustype="FB" ctftype="" ressched="1" bussched="1">Slow Speeds/Packet Loss.  NOT WIRELESS SPEED ISSUES (FDMDS = NTs) USE DEFAULT APPOINTMENT</option><option value="44"     restype="FD" bustype="FB" ctftype="" ressched="1" bussched="1">Static IP routing issue. Confirmed router configuration. (FDIP = NTs) USE DEFAULT APPOINTMENT</option>
+										</select>
+									</div>
+
+									<div class="control-group" name="videoContain" id="videoContain"
+									     style="display: none;">
+										<label class="control-label">Customer Trouble</label>
+										<select id="videoIssue" name="videoIssue" class="input-large"
+										        onchange="getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="46"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">ALL CHANNELS are out on ALL TVs and we cannot resolve (FVACO = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="48"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Customer demands dispatch. Not for customer owned equipment or STB/DVR replacement.  ADVISE OF CHARGES. (FVDIS = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="58"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Customer is getting Channel Not Available on SOME CHANNELS. We cannot resolve. Physical issue (FVCONA = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="59"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">Customer is getting Channel Not Subscribed on SOME CHANNELS. We cannot resolve. Provisioning/network issue (FVCONS = NTs) USE DEFAULT APPOINTMENT</option><option value="47"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace cable card. ADVISE OF CHARGES. (FVCABC = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="49"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace DVR instead of dropship. ADVISE OF CHARGES. (FVDVR = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="54"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace STB, instead of dropship. ADVISE OF CHARGES. (FVSTB = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="50"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">Interactive Media Guide Issues, we have ruled out STB/DVR/Wiring as the problem. (FVIMG = NTs)USE DEFAULT APPOINTMENT</option><option value="51"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Known physical problem, ONT, drop/inside wiring, splitters, coax, etc. Not for customer owned equipment or STB/DVR replacement.  (FVPHY = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="53"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">Pay for View issues -  verified no billing issues, not exceeded credit limit and full troubleshooting complete.  (FVPPV = NTs) USE DEFAULT APPOINTMENT</option><option value="52"     restype="FV" bustype="FB" ctftype="" ressched="2" bussched="2">Picture/audio quality is bad, pixilation, audio sync, after reseating coax and ruling out physical issues such as cabling etc.  (FVPIC = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="55"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">TV Everywhere issues after complete troubleshooting done.  (FVTVE = NTs) USE DEFAULT APPOINTMENT</option><option value="56"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">Video on Demand issues after complete troubleshooting done.  (FVVOD = NTs) USE DEFAULT APPOINTMENT</option><option value="100"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">VOD Missing Asset issues after complete troubleshooting done.  (FVMA = NTs) USE DEFAULT APPOINTMENT</option><option value="57"     restype="FV" bustype="FB" ctftype="" ressched="1" bussched="1">Widget problems such as Caller ID on TV, Netflix, etc.  No known issues or outages, and full troubleshooting completed.  (FVWIDG = NTs) USE DEFAULT APPOINTMENT</option>										</select>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">Router Model</label>
+
+										<div class="controls">
+											<select id="fiosRouter" name="fiosRouter" class="input-large">
+												<option selected="selected">Select A Router</option>
+												<option>MI424WR FP GigE</option>
+												<option>MI424WR REV. I</option>
+												<option>MI424WR REV. E/F</option>
+												<option>MI424WR</option>
+												<option>Westell 9100EM</option>
+												<option>Zyxel/HPNA</option>
+												<option>Westell 9100VM</option>
+												<option>Other</option>
+											</select>
+										</div>
+									</div>
+
+									<!--<div class="control-group">
+										<label class="control-label">ONT Model</label>
+
+										<div class="controls">
+											<select id="fiosOnt" name="fiosOnt" class="input-large">
+												<option selected="selected">Select A ONT</option>
+												<option>Tellabs 610</option>
+												<option>Tellabs 611</option>
+												<option>Tellabs 612</option>
+												<option>Tellabs 613</option>
+												<option>Tellabs 621</option>
+												<option>Tellabs 625</option>
+												<option>Moto 1000V</option>
+												<option>Moto 1000M</option>
+												<option>Moto 1000G</option>
+												<option>Moto 1500GT</option>
+												<option>Moto 1500GTI</option>
+												<option>Moto 6000BET</option>
+												<option>Moto 6000BVT</option>
+												<option>Moto 6000MDU</option>
+												<option>Moto 6000VDSL</option>
+												<option>ALTL O-211</option>
+												<option>ALTL I-211</option>
+												<option>ALTL O-821G-D</option>
+												<option>ALTL O-821M</option>
+												<option>CALIX 722GX</option>
+												<option>CALIX 722GE</option>
+												<option>CALIX 727GE</option>
+											</select>
+										</div>
+									</div>-->
+
+
+									<div class="control-group">
+										<label class="control-label">Is the customer in a possible outage area?</label>
+										<div class="controls">
+											<label class="checkbox">
+												<input type="checkbox" name="outageArea" value="1">
+											</label>
+										</div>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">Special Notes</label>
+
+										<div class="controls">
+                                                <textarea id="fiosNotes" name="fiosNotes"
+                                                          maxlength="40"></textarea>
+										</div>
+									</div>
+
+								</div>
+
+								<!----------- ADDED FTV SECTION --------------->
+								<div id="ftvIssues" name="ftvIssues">
+
+									<div class="control-group" id="ftvDataContain" name="ftvDataContain"
+									     style="display: none;" onchange="speedSwitch(this);">
+										<label class="control-label">Customer Trouble</label>
+										<select id="ftvDataIssue" name="ftvDataIssue" class="input-large"
+										        onchange="getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="60"     restype="VD" bustype="VB" ctftype="" ressched="1" bussched="1">All Data Services out, NO Drop/Wiring/Physical issue apparent  (UDCC = NT) USE DEFAULT APPOINTMENT</option><option value="61"     restype="VD" bustype="VB" ctftype="" ressched="2" bussched="2">Customer demands dispatch. NOT for wireless problems or customer owned equipment problems. ADVISE OF CHARGES (UDDIS = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="62"     restype="VD" bustype="VB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace RG, instead of dropship. ADVISE OF CHARGES. (UDMDL = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="63"     restype="VD" bustype="VB" ctftype="" ressched="1" bussched="1">Frequent Disconnects. NOT WIRELESS DISCONNECTS (UDFD = NT) USE DEFAULT APPOINTMENT</option><option value="97"     restype="VD" bustype="VB" ctftype="" ressched="2" bussched="2">Known physical problem, Drop/Wiring/Physical issue present - All Data Services affected. Not for customer owned equipment or STB/DVR replacement. (UDPHY = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="64"     restype="VD" bustype="VB" ctftype="" ressched="1" bussched="1">Slow Speeds/Packet Loss. NOT WIRELESS SPEED ISSUES (UDMDS = NT) USE DEFAULT APPOINTMENT</option><option value="65"     restype="VD" bustype="VB" ctftype="" ressched="1" bussched="1">Static IP routing issue. Confirmed router configuration. (UDIP = NT) USE DEFAULT APPOINTMENT</option>										</select>
+									</div>
+
+									<div class="control-group" id="ftvVideoContain" name="ftvVideoContain"
+									     style="display: none;">
+										<label class="control-label">Customer Trouble</label>
+										<select id="ftvVideoIssue" name="ftvVideoIssue" class="input-large"
+										        onchange="getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="98"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">ALL CHANNELS are out on ALL TVs and we cannot resolve (UVACO = NT) USE DEFAULT APPOINTMENT</option><option value="77"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Customer is getting Channel Not Available on SOME CHANNELS. We cannot resolve. Physical issue (UVSCONA = NT) USE DEFAULT APPOINTMENT</option><option value="76"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Customer is getting Channel Not Subscribed on SOME CHANNELS. We cannot resolve. Provisioning/network issue (UVSCONS = NT) USE DEFAULT APPOINTMENT</option><option value="68"     restype="VV" bustype="VB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace DVR instead of dropship. ADVISE OF CHARGES. (UVDVR = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="67"     restype="VV" bustype="VB" ctftype="" ressched="2" bussched="2">Customer wants the field to replace STB, instead of dropship. ADVISE OF CHARGES. (UVSTB = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="69"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Interactive Media Guide Issues, we have ruled out STB/DVR/Wiring as the problem. (UVIMG = NT) USE DEFAULT APPOINTMENT</option><option value="99"     restype="VV" bustype="VB" ctftype="" ressched="2" bussched="2">Known physical problem, drop/inside wiring, splitters, coax, etc. Not for customer owned equipment or STB/DVR replacement. (UVPHY = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="71"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Pay for View issues - verified no billing issues, not exceeded credit limit and full troubleshooting complete. (UVPPV = NT) USE DEFAULT APPOINTMENT</option><option value="70"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Picture/audio quality is bad, pixelation, audio sync.  Reseat cable, and rule out physical.  INCLUDE CHANNELS AFFECTED  (UVPIC = NT) USE DEFAULT APPOINTMENT</option><option value="73"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">TV Everywhere issues after complete troubleshooting done. (UVTVE = NT) USE DEFAULT APPOINTMENT</option><option value="72"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Video on Demand issues after complete troubleshooting done. (UVVOD = NT) USE DEFAULT APPOINTMENT</option><option value="78"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">VOD Missing Asset issues after complete troubleshooting done. (UVMA = NT) USE DEFAULT APPOINTMENT</option><option value="79"     restype="VV" bustype="VB" ctftype="" ressched="1" bussched="1">Widget problems such as Caller ID on TV, Netflix, etc. No known issues or outages, and full troubleshooting completed. (UVWIDG = NT) USE DEFAULT APPOINTMENT</option>										</select>
+									</div>
+
+									<div class="control-group" id="ftvVoiceContain" name="ftvVoiceContain"
+									     style="display: none;">
+										<label class="control-label">Customer Trouble</label>
+										<select id="ftvVoiceIssue" name="ftvVoiceIssue" class="input-large"
+										        onchange="getAppointmentsApiSel(this);">
+											<option value="">Select an issue</option>
+											<option value="87"     restype="VP" bustype="VB" ctftype="" ressched="2" bussched="2">All Services Out with VOIP (VVOIPT2S = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="85"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">An issue with a feature such as call forward, caller ID (not on TV), etc. That could not be resolved through normal troubleshooting. (VVOIPT2F = NT) USE DEFAULT APPOINTMENT</option><option value="86"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">An issue with voice mail that could not be resolved through normal troubleshooting. (VVOIPT2M = NT) USE DEFAULT APPOINTMENT</option><option value="84"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">INBOUND calls only. Can NOT RECEIVE Calls or sound quality issue after full troubleshooting. (VVOIPT2I = NT) USE DEFAULT APPOINTMENT</option><option value="80"     restype="VP" bustype="VB" ctftype="" ressched="2" bussched="2">Isolated to wiring or bad jack issues after troubleshooting. NOT CUSTOMER OWNED EQUIPMENT (VVOIPDIS = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="82"     restype="VP" bustype="VB" ctftype="" ressched="2" bussched="2">No Dial Tone, VIDEO/DATA ARE WORKING. (VVOIPNDT = Field) DO NOT USE DEFAULT APPOINTMENT</option><option value="83"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">OUTBOUND calls only,  Cannot make calls, or sound quality issue, after full troubleshooting.  (VVOIPT2O = NT) USE DEFAULT APPOINTMENT</option><option value="81"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">Sound quality issue with IN and OUTBOUND calls, after full troubleshooting. (VVOIPT2Q = NT) USE DEFAULT APPOINTMENT</option><option value="89"     restype="VP" bustype="VB" ctftype="" ressched="1" bussched="1">Voice Provisioning/Regstration Issue (VVOIPT2P = NT) USE DEFAULT APPOINTMENT</option>										</select>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">FTV CPE</label>
+
+										<div class="controls">
+											<select id="ftvCpe" name="ftvCpe" class="input-large">
+												<option selected="selected"></option>
+												<option>2wire 3800</option>
+												<option>2wire/Pace 3801</option>
+												<option>2wire i38HG</option>
+												<option>Moto NVG510</option>
+												<option>Moto/Arris NVG589</option>
+												<option>Pace 5168NV</option>
+												<option>Pace 5031NV</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">FTV Set Top box</label>
+
+										<div class="controls">
+											<select id="ftvStb" name="ftvStb" class="input-large">
+												<option selected="selected"></option>
+												<option>Arris VIP2102</option>
+												<option>Arris VIP2502</option>
+												<option>Arris VIP2262</option>
+												<option>Cisco ISB7005</option>
+												<option>Moto VIP1200</option>
+												<option>Cisco IPN330HD</option>
+												<option>Moto VIP2200</option>
+												<option>Moto VIP2250</option>
+												<option>Moto VIP1216 & 1225</option>
+												<option>Cisco ISB7105</option>
+												<option>Arris VIP2500</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="control-group" id="vapid">
+										<label class="control-label">FTV Video Access Point</label>
+
+										<div class="controls">
+											<select name="ftvVap" id="ftvVap" class="input-large">
+												<option selected="selected"></option>
+												<option value="401">Cisco VEN401</option>
+												<option value="501">Cisco VEN501</option>
+												<option value="2500">Arris VAP2500</option>
+											</select>
+										</div>
+									</div>
+
+									<div class="control-group">
+										<label class="control-label">Issue Notes</label>
+
+										<div class="controls">
+                                                <textarea id="ftvNotes" name="ftvNotes"
+                                                          maxlength="40"></textarea>
+										</div>
+									</div>
+								</div>
+
+
+								<!--<div class="control-group" id="loop_stuff_1" style="display: none;">
+									<label class="control-label">Configured Up</label>
+
+									<div class="controls">
+										<input id="loop_conf_up" name="loop_conf_up" type="text" placeholder="" class="input-large" maxlength="4" onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+									</div>
+								</div>
+								<div class="control-group" id="loop_stuff_2" style="display: none;">
+									<label class="control-label">Configured Down</label>
+
+									<div class="controls">
+										<input id="loop_conf_dwn" name="loop_conf_dwn" type="text" placeholder="" class="input-large" maxlength="4" onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+									</div>
+								</div>
+								<div class="control-group" id="loop_stuff_3" style="display: none;">
+									<label class="control-label">Operating Up</label>
+
+									<div class="controls">
+										<input id="loop_op_up" name="loop_op_up" type="text" placeholder="" class="input-large" maxlength="4" onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+									</div>
+								</div>
+								<div class="control-group" id="loop_stuff_4" style="display: none;">
+									<label class="control-label">Operating Down</label>
+
+									<div class="controls">
+										<input id="loop_op_dwn" name="loop_op_dwn" type="text" placeholder="" class="input-large" maxlength="4" onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+									</div>
+								</div>-->
+								<!-- Text input-->
+
+								<div class="control-group">
+									<label for="" class="control-label">How are they connected?</label>
+									<div class="controls">
+										<select name="wireless" id="wireless">
+											<option selected="selected">Select One</option>
+											<option>Wired</option>
+											<option>Wireless</option>
+										</select>
+									</div>
+								</div>
+
+								<div class="control-group" id="snrRow" style="display: none;">
+									<label class="control-label">SNR</label>
+
+									<div class="controls">
+										<input id="snr" name="snr" type="text" placeholder=""
+										       class="input-large"
+										       maxlength="4"
+										       onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group" id="attenuationRow" style="display: none;">
+									<label class="control-label">Attenuation</label>
+
+									<div class="controls">
+										<input id="attenuation" name="attenuation" type="text" placeholder=""
+										       class="input-large" maxlength="4"
+										       onchange="this.value = this.value.replace(/[^0-9\.]/g, '');">
+
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group" id="speedoptions1" style="display: none;">
+									<label class="control-label">Provisioned Speed</label>
+
+									<div class="controls">
+										<input id="provSpeed" name="provSpeed" type="text" placeholder=""
+										       class="input-large"
+										       onchange="this.value = this.value.replace(/[^0-9]/g,'');">
+
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group" id="speedoptions2" style="display: none;">
+									<label class="control-label">Test Results</label>
+
+									<div class="controls">
+										<input id="resultSpeed" name="resultSpeed" type="text" placeholder=""
+										       class="input-large"
+										       onchange="this.value = this.value.replace(/[^0-9]/g,'');">
+
+									</div>
+								</div>
+
+								<!-- Text input-->
+
+								<div id="pppInfo" name="pppInfo">
+
+									<div class="control-group">
+										<label class="control-label">Email Username</label>
+
+										<div class="controls">
+											<input id="email" name="email" type="text" placeholder=""
+											       class="input-large"
+											       autocomplete="off">
+
+										</div>
+									</div>
+
+									<!-- Select Basic -->
+									<div class="control-group">
+										<label class="control-label">Domain</label>
+
+										<div class="controls">
+											<select id="domain" name="domain" class="input-large">
+												<option value="-1">Select One</option>
+												<option value="0">Frontiernet.net</option>
+												<option value="5">Frontier.com</option>
+												<option value="6">connect.frontier.com</option>
+												<option value="1">Citlink.net</option>
+												<option value="2">Newnorth.net</option>
+												<option value="3">Epix.net</option>
+												<option value="4">GVNI.com</option>
+											</select>
+										</div>
+									</div>
+								</div>
+
+								<!-- Password input-->
+								<div class="control-group" style="display:none;">
+									<label class="control-label">Email Password</label>
+
+									<div class="controls">
+										<input id="pwd" name="pwd" type="text" placeholder=""
+										       class="input-large" value="unknown"
+										       autocomplete="off">
+
+									</div>
+								</div>
+
+								<!-- Multiple Checkboxes (inline) -->
+								<!--
+                                <div class="control-group" id="cblue">
+                                    <label class="control-label">Code Blue</label>
+
+                                    <div class="controls">
+                                        <label class="checkbox">
+                                            <input type="checkbox" name="cblue" value="1">
+                                        </label>
+                                    </div>
+                                </div>-->
+
+								<!-- Text input-->
+								<div class="control-group" style="display: none;" id="epixstuf">
+									<label class="control-label">Availability</label>
+
+									<div class="controls">
+										<input id="epixhour1" name="epixhour1" type="text" placeholder=""
+										       class="input-large"
+										       onchange="this.value = this.value.replace(/[^0-9]/g,'').substr(0,2);"
+										       name="epixhour1" maxlength="2" style="width: 20px;">
+										-
+										<input type="text"
+										       onchange="this.value = this.value.replace(/[^0-9]/g,'').substr(0,2);"
+										       id="epixhour2" name="epixhour2" maxlength="2"
+										       style="width: 20px;"/>
+										(Military Time)
+
+									</div>
+								</div>
+
+								<!-- Textarea -->
+								<div class="control-group" style="display: none;">
+									<label class="control-label">Special Notes</label>
+
+									<div class="controls">
+                                                <textarea id="specialNotes" name="specialNotes"
+                                                          maxlength="100"></textarea>
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group" id="sanIDtr" style="display: none;">
+									<label class="control-label">San ID</label>
+
+									<div class="controls">
+										<input id="sanID" name="sanID" type="text" placeholder=""
+										       class="input-large"
+										       maxlength="100">
+
+									</div>
+								</div>
+
+								<!-- Multiple Checkboxes -->
+								<div class="control-group" id="satlights" style="display: none;">
+									<label class="control-label">Light Status</label>
+
+									<div class="controls">
+										<label class="checkbox">
+											<input type="checkbox" name="sattxlight" id="sattxlight">
+											Tx
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" name="satrxlight" id="satrxlight">
+											Rx
+										</label>
+										<label class="checkbox">
+											<input type="checkbox" name="satsyslight" id="satsyslight">
+											Sys
+										</label>
+									</div>
+								</div>
+
+								<!-- Multiple Radios (inline) -->
+								<!--<div class="control-group">
+									<label class="control-label">Business Customer?</label>
+
+									<div class="controls">
+										<label class="checkbox">
+											<input type="checkbox" value="1" id="cbdsl" name="bdsl"
+												   onchange="if(this.checked) { _('bdslw').style.display = 'block'; _('bdsll').style.display = 'block'; } else { _('bdslw').style.display = 'none'; _('bdsll').style.display = 'none'; }">
+										</label>
+									</div>
+								</div>-->
+
+								<!-- Text input-->
+								<div class="control-group" id="bdslw" style="display: none;">
+									<label class="control-label">BDSL WAN</label>
+
+									<div class="controls">
+										<input id="wbdsl" name="wbdsl" type="text" placeholder=""
+										       class="input-large">
+
+									</div>
+								</div>
+
+								<!-- Text input-->
+								<div class="control-group" id="bdsll" style="display: none;">
+									<label class="control-label">BDSL LAN</label>
+
+									<div class="controls">
+										<input id="lbdsl" name="lbdsl" type="text" placeholder=""
+										       class="input-large">
+
+									</div>
+								</div>
+
+								<!-- Multiple Radios (inline) -->
+								<div class="control-group" id="iwc" style="display: none;">
+									<label class="control-label">Inside Wire Care?</label>
+
+									<div class="controls">
+										<label class="checkbox">
+											<input type="checkbox" name="iwc" id="insidewire" value="1">
+										</label>
+									</div>
+								</div>
+								<!-- appointments -->
+								<div class="control-group">
+									<label for="newcommittype" class="control-label">Appointment Type</label>
+									<div class="controls">
+										<select name="newcommittype" id="newcommittype" class="input-large"
+										        onchange="hideshowNewCommit()"></select>
+									</div>
+								</div>
+								<div class="control-group">
+									<label class="control-label">Appointment Time</label>
+									<div class="controls">
+										<select name="" style="display: none;" id="newcommitallday"></select>
+										<select name="" style="display: none;" id="newcommitam"></select>
+										<select name="" style="display: none;" id="newcommitpm"></select>
+										<select name="" style="display: none;" id="newcommit4h"></select>
+										<select name="" style="display: none;" id="newcommit2h"></select>
+									</div>
+								</div>
+
+								<!-- Button -->
+								<div class="control-group" id="s">
+									<label class="control-label"></label>
+
+									<div class="controls">
+										<button id="submitbutton" name="submitbutton"
+										        class="btn btn-primary span2">
+											Submit Ticket
+
+										</button>
+										<br><br>
+										<button id="changemind" name="changemind" class="btn btn-danger span2"
+										        onclick="changeMind();">Cancel
+										</button>
+									</div>
+								</div>
+								<div id="l" style="display: none;">
+									<div class="progress progress-striped progress-info active span5">
+										<div class="bar" style="width: 100%;"></div>
+									</div>
+								</div>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+				<div class="row span6 offset2">
+					<table id="info" class="table table-bordered" style="display: none;">
+						<thead>
+						<tr>
+							<th colspan="3" class="btn-info" style="text-align: center;">Ticket Details</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td style="font-weight: bold; text-align: center;">Ticket Number</td>
+							<td id="ticketNumber"></td>
+						</tr>
+						<tr>
+							<td style="font-weight: bold; text-align: center;">Commit Time</td>
+							<td id="commitTime"></td>
+						</tr>
+						<tr>
+							<td style="font-weight: bold; text-align: center;">Commit Date</td>
+							<td id="commitDate"></td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="row span6 offset2" id="commitload" style="display: none;">
+					<div class="control-group">
+						Loading appointment times...
+					</div>
+				</div>
+				<div class="row span6 offset6" id="commitsave" style="display: none;">
+					<div class="control-group">
+						Saving new appointment...
+					</div>
+				</div>
+				<br>
+				<div id="commit" class="row span6 offset6" style="display: none;">
+					<div class="control-group">
+						<label for="committype" class="control-label">Appointment Type</label>
+						<div class="controls">
+							<select name="committype" id="committype" class="input-large"
+							        onchange="hideshowCommit()"></select>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label">Appointment Time</label>
+						<div class="controls">
+							<select name="" style="display: none;" id="commitallday"></select>
+							<select name="" style="display: none;" id="commitam"></select>
+							<select name="" style="display: none;" id="commitpm"></select>
+							<select name="" style="display: none;" id="commit4h"></select>
+							<select name="" style="display: none;" id="commit2h"></select>
+						</div>
+					</div>
+
+
+					<!-- Button -->
+					<div class="control-group" id="c">
+						<label class="control-label" for="c"></label>
+
+						<div class="controls">
+							<button class="btn btn-success" style="display: block;" onclick="setAppointment();">Change
+								Appointment
+							</button>
+						</div>
+					</div>
+				</div>
+				<!-- Button (Double) -->
+				<div>
+					<div class="control-group" id="finish" style="display: none;">
+						<label class="control-label" for="finish"></label>
+
+						<div class="controls">
+							<button class="btn btn-danger span3 offset3"
+							        onclick="_('commit').style.display='none';_('reset').style.display='block';_('finish').style.display='none';">
+								Finish
+							</button>
+						</div>
+						<!--
+						<label for="commitbtn" class="control-label"></label>
+						<div class="controls">
+							<button class="btn btn-primary span3 offset3" onclick="getAppointments();">
+								Reschedule
+							</button>
+						</div>
+						-->
+					</div>
+					<div class="control-group" id="reset" style="display: none;">
+						<label class="control-label" for="reset"></label>
+
+						<div class="controls">
+							<button class="btn btn-primary span3 offset3" onclick="doReset(); return false;">Start
+								Over
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="tab-pane" id="billtab">
+				<div class="row">
+					<div class="alert alert-info span5 offset1">
+						<button type="button" class="close" data-dismiss="alert">&times;</button>
+						<strong>Please Enter the Phone Number Below</strong>
+					</div>
+					<br><br><br>
+					<input type="text" class="input-large offset2" id="ph_n" placeholder=""><br>
+					<button id="bt" class="btn btn-primary span2 offset2" onclick="validate(ph_n.value);">Verify
+						Number
+					</button>
+				</div>
+				<div id="bpb" style="display: none;">
+					<div class="progress progress-striped progress-info active offset1 span5">
+						<div class="bar" style="width: 100%;"></div>
+					</div>
+				</div>
+				<br><br>
+
+				<div id="SO" class="row span11" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th class="btn-success" style="text-align: center;">Pending Service Orders</th>
+						</tr>
+						</thead>
+						<tbody id="pso">
+						</tbody>
+					</table>
+				</div>
+				<div id="AW" class="row span11" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th class="btn-danger" style="text-align: center;">Account Warnings</th>
+						</tr>
+						</thead>
+						<tbody id="err">
+						</tbody>
+					</table>
+				</div>
+				<div id="IN" class="row span11" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th class="btn-primary" style="text-align: center;">Important Notifications<br>
+								Do not paste the text from these notifications into INET portal. They are written from
+								an internal viewpoint, sometimes with links to internal wiki pages, and are not
+								formatted nor intended for INET Portal.
+							</th>
+						</tr>
+						</thead>
+						<tbody id="rules">
+						</tbody>
+					</table>
+				</div>
+				<!-- Button -->
+				<div id="B" class="row span11" style="display:none;">
+					<table class="table table-bordered" id="prodTable" name="prodTable" style="text-align: center;">
+						<thead style="text-align: center;">
+						<tr>
+							<th class="btn-info" style="text-align: center;">Product ID</th>
+							<th class="btn-info" style="text-align: center;">Product</th>
+							<th class="btn-info" style="text-align: center;">Charge</th>
+							<th class="btn-info" style="text-align: center;">Installed</th>
+							<th class="btn-info" style="text-align: center;">Cancelled</th>
+							<th class="btn-info" style="text-align: center;">Description</th>
+						</tr>
+						</thead>
+						<tbody id="bill_prods">
+						</tbody>
+					</table>
+				</div>
+				<div id="SK" class="row span11" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th colspan="3" class="btn-info" style="text-align: center;">Subscription Keys</th>
+						</tr>
+						</thead>
+						<tbody id="subs">
+						</tbody>
+					</table>
+				</div>
+				<div id="balance" class="row span4" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th colspan="2" class="btn-info" style="text-align: center;">Balance Information</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr id="billbal">
+							<td>Current Balance:</td>
+							<td id="billbal_value"></td>
+						</tr>
+						<tr id="bal_60" class="upgrade" style="display:none;">
+							<td>60 Days Past Due:</td>
+							<td id="bal_60_value"></td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id="AI" class="row span7" style="display:none;">
+					<table class="table table-bordered" style="text-align: center;">
+						<thead>
+						<tr>
+							<th colspan="2" class="btn-info" style="text-align: center;">Account Information</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td>Verification PIN</td>
+							<td id="pin" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Last 4 of SSN</td>
+							<td id="ssn" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Line Card Type</td>
+							<td id="linecard" class="" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Primary Email</td>
+							<td id="eml" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Password</td>
+							<td style="text-align: center;">
+								<div id="pw" style="display: none;"></div>
+								<div class="control-group">
+									<label class="control-label" for="inetpass"></label>
+
+									<div class="controls">
+										<button id="inetpass" name="inetpass" class="btn btn-danger"
+										        onclick="getPassword(ph_n.value);">Request Password
+										</button>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>Street Address</td>
+							<td id="street" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>City, State</td>
+							<td id="loc" style="text-align: center;"></td>
+						</tr>
+						<tr id="showCLLI" style="display:table-row">
+							<td>CLLI Code</td>
+							<td id="CLLI" style="text-align: center;"></td>
+						</tr>
+						<tr id="showSAT" style="display:none">
+							<td>SAT Acct#</td>
+							<td id="SAT" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Provisioned Speed</td>
+							<td id="provisioned" style="text-align: center;"></td>
+						</tr>
+						<tr>
+							<td>Max Available Speed</td>
+							<td id="mx" style="text-align: center;"></td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<!-- <div class="tab-pane" id="canceltab">
+				<embed src="/cancelcdpi/" height="900" width="900"></embed>
+			</div>
+			-->
+			<div class="tab-pane" id="forcetab">
+				<embed src="../force.php" height="900" width="900"></embed>
+			</div>
+			<div class="tab-pane" id="cbtab">
+				<!-- <a href="https://techhelp.northcentralnetworks.com/vsc/Forms/CodeBlue-v1.aspx" target = "CB">Reload</a>
+					<iframe src="https://techhelp.northcentralnetworks.com/vsc/Forms/CodeBlue-v1.aspx" height="900" width="900" name="CB"></iframe> -->
+				<!--
+					<embed src="http://techhelp.northcentralnetworks.com/vsc/Forms/CodeBlue-v1.aspx" height="900" width="900"></embed>
+				-->
+			</div>
+			<div class="tab-pane" id="cbltab">
+				<!-- <iframe src="https://techhelp.northcentralnetworks.com/vsc/Reports/codeblue-summary.aspx" height="900" width="900"></iframe> -->
+				<!--
+					<embed src="http://techhelp.northcentralnetworks.com/vsc/Reports/codeblue-summary.aspx" height="900" width="900"></embed>
+				-->
+			</div>
+			<div class="tab-pane" id="fmtab">
+				<embed src="https://techhelp.northcentralnetworks.com/vsc/forms/filter-modemrequest.aspx" height="900"
+				       width="900"></embed>
+			</div>
+
+			<div class="modal hide fade" id="nosale" style="display: none; text-align: center;">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h3>Sales Alert</h3>
+				</div>
+				<div class="modal-body">
+					<div class="alert alert-danger">
+						<strong>WARNING</strong><br> Do NOT sell products to this customer.
+					</div>
+					<p>This is for one of the following reasons:</p><br><b>
+						<ol>
+							<div class="well span5">
+								<ul>Balance 60 days or greater</ul>
+								<ul>Deferred Payment Arrangement</ul>
+								<ul>Returned check(s)</ul>
+								<ul>Fictitious account</ul>
+								<ul>Is disconnected</ul>
+							</div>
+						</ol>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<hr>
+</body>
+</html>
